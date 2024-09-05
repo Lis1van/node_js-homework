@@ -1,1 +1,1 @@
-Content for folder1 file2
+This is file 2 in folder 1

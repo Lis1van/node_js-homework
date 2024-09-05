@@ -86,39 +86,84 @@
 //
 // createFolderStructure().catch(console.error);
 
+//
+// const path = require('node:path');
+// const fsPromises = require('node:fs/promises');
+//
+// const createFolderStructure = async () => {
+//     const baseFolder = path.join(__dirname, 'baseFolder');
+//
+//     await fsPromises.mkdir(baseFolder, { recursive: true });
+//
+//     const createFolderAndFiles = async (folderName) => {
+//         const folderPath = path.join(baseFolder, folderName);
+//         await fsPromises.mkdir(folderPath);
+//
+//         const folderStat = await fsPromises.stat(folderPath);
+//         console.log(`Path: ${folderPath}, isDirectory: ${folderStat.isDirectory()}`);
+//
+//         for (let i = 1; i <= 5; i++) {
+//             const filePath = path.join(folderPath, `file${i}.txt`);
+//             await fsPromises.writeFile(filePath, `Content for ${folderName} file${i}`);
+//
+//             const fileStat = await fsPromises.stat(filePath);
+//             console.log(`Path: ${filePath}, isFile: ${fileStat.isFile()}`);
+//         }
+//     };
+//
+//     await createFolderAndFiles('folder1');
+//     await createFolderAndFiles('folder2');
+//     await createFolderAndFiles('folder3');
+//     await createFolderAndFiles('folder4');
+//     await createFolderAndFiles('folder5');
+//
+//     const baseFolderStat = await fsPromises.stat(baseFolder);
+//     console.log(`Path: ${baseFolder}, isDirectory: ${baseFolderStat.isDirectory()}`);
+// };
+//
+// createFolderStructure().catch(console.error);
 
-const path = require('node:path');
-const fsPromises = require('node:fs/promises');
 
-const createFolderStructure = async () => {
-    const baseFolder = path.join(__dirname, 'baseFolder');
+const fs = require('fs');
+const path = require('path');
 
-    await fsPromises.mkdir(baseFolder, { recursive: true });
+const baseFolder = path.join(__dirname, 'baseFolder');
 
-    const createFolderAndFiles = async (folderName) => {
-        const folderPath = path.join(baseFolder, folderName);
-        await fsPromises.mkdir(folderPath);
+function createFolderStructure() {
+    if (!fs.existsSync(baseFolder)) {
+        fs.mkdirSync(baseFolder);
+    }
 
-        const folderStat = await fsPromises.stat(folderPath);
-        console.log(`Path: ${folderPath}, isDirectory: ${folderStat.isDirectory()}`);
+    for (let i = 1; i <= 5; i++) {
+        const folderPath = path.join(baseFolder, `folder${i}`);
 
-        for (let i = 1; i <= 5; i++) {
-            const filePath = path.join(folderPath, `file${i}.txt`);
-            await fsPromises.writeFile(filePath, `Content for ${folderName} file${i}`);
-
-            const fileStat = await fsPromises.stat(filePath);
-            console.log(`Path: ${filePath}, isFile: ${fileStat.isFile()}`);
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath);
         }
-    };
 
-    await createFolderAndFiles('folder1');
-    await createFolderAndFiles('folder2');
-    await createFolderAndFiles('folder3');
-    await createFolderAndFiles('folder4');
-    await createFolderAndFiles('folder5');
+        for (let j = 1; j <= 5; j++) {
+            const filePath = path.join(folderPath, `file${j}.txt`);
+            fs.writeFileSync(filePath, `This is file ${j} in folder ${i}`);
+        }
+    }
+}
 
-    const baseFolderStat = await fsPromises.stat(baseFolder);
-    console.log(`Path: ${baseFolder}, isDirectory: ${baseFolderStat.isDirectory()}`);
-};
+function printFolderContents(dir) {
+    const items = fs.readdirSync(dir);
 
-createFolderStructure().catch(console.error);
+    items.forEach(item => {
+        const itemPath = path.join(dir, item);
+        const stats = fs.statSync(itemPath);
+
+        if (stats.isDirectory()) {
+            console.log(`${itemPath} - folder`);
+            printFolderContents(itemPath);
+        } else if (stats.isFile()) {
+            console.log(`${itemPath} - file`);
+        }
+    });
+}
+
+createFolderStructure();
+
+printFolderContents(baseFolder);

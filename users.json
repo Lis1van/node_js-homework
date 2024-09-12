@@ -58,5 +58,11 @@
     "name": "Anna",
     "email": "ann43@gmail.com",
     "password": "ghj393"
+  },
+  {
+    "id": 13,
+    "name": "Alina",
+    "email": "alindosik@gmail.com",
+    "password": "ert345"
   }
 ]

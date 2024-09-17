@@ -1,31 +1,21 @@
-// Импортируем express - это фреймворк для создания веб-серверов на Node.js.
 import express from "express";
+import mongoose from "mongoose";
 
-// Импортируем маршруты (routes) для работы с пользователями из файла "./routes/users".
-// Это необходимо для того, чтобы разделить логику обработки различных маршрутов в отдельные файлы.
+import { config } from "./config/configs";
 import userRoutes from "./routes/users";
 
-// Создаем приложение Express. Это будет основной объект, с которым мы будем работать для обработки запросов.
 const app = express();
 
-// Добавляем middleware, который позволяет обрабатывать JSON-запросы.
-// Это означает, что сервер будет понимать и автоматически преобразовывать JSON, отправленный клиентом, в JavaScript-объект.
 app.use(express.json());
-
-// Добавляем middleware для обработки данных, которые приходят в формате формы (например, при отправке через HTML-формы).
-// Параметр { extended: true } позволяет парсить данные более сложных структур, например вложенные объекты.
 app.use(express.urlencoded({ extended: true }));
 
-// Настраиваем маршрут для работы с пользователями.
-// Все запросы, которые начинаются с "/users", будут обрабатываться в userRoutes (логика в файле ./routes/users).
 app.use("/users", userRoutes);
 
-// Устанавливаем порт, на котором будет запущен сервер.
-// Это просто переменная, которая хранит номер порта (в данном случае 3000).
-const PORT = 3000;
-
-// Запускаем сервер на указанном порту и выводим сообщение в консоль, чтобы было понятно, что сервер запущен.
-// Как только сервер начинает слушать порт, выполняется эта функция, которая выводит URL, где можно его найти.
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(config.PORT, async () => {
+  try {
+    await mongoose.connect(config.MONGO_URI);
+    console.log(`Server is running on http://${config.HOST}:${config.PORT}`);
+  } catch (error) {
+    console.error("Ошибка подключения к MongoDB", error);
+  }
 });

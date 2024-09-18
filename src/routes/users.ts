@@ -6,16 +6,18 @@ import {
   getUsers,
   updateUser,
 } from "../controllers/usersController";
-import { validateRequest } from "../middlewares/validationMiddleware";
-import { userSchema } from "../validators/userValidator";
+import {
+  validateCreateUser,
+  validateUpdateUser,
+} from "../middlewares/validationMiddleware";
 
 const router = Router();
 
 router.get("/", getUsers);
 
-router.post("/", validateRequest(userSchema), createUser);
+router.post("/", validateCreateUser, createUser);
 
-router.put("/:userId", validateRequest(userSchema), updateUser);
+router.put("/:userId", validateUpdateUser, updateUser);
 
 router.delete("/:userId", deleteUser);
 

@@ -1,23 +1,62 @@
-import * as fs from "fs";
-import * as path from "path";
-
+import { User } from "../models/user.model";
 import { IUser } from "../types";
 
-const usersFilePath = path.join(process.cwd(), "users.json");
-
 export class UserRepository {
-  readUsers(): IUser[] {
+  async findAll(): Promise<IUser[]> {
     try {
-      const data = fs.readFileSync(usersFilePath, "utf8");
-
-      return JSON.parse(data);
-    } catch (err) {
-      console.error(err);
-      return [];
+      return await User.find({ isDeleted: false });
+    } catch (error) {
+      console.error(error);
+      throw new Error("Ошибка при получении пользователей");
     }
   }
 
-  writeUsers(users: IUser[]): void {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+  async findById(userId: string): Promise<IUser | null> {
+    try {
+      return await User.findById(userId);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Ошибка при поиске пользователя");
+    }
+  }
+
+  async createUser(userData: IUser): Promise<IUser> {
+    try {
+      const newUser = new User(userData);
+      await newUser.save();
+      return newUser;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Ошибка при создании пользователя");
+    }
+  }
+
+  async updateUser(
+    userId: string,
+    updateData: Partial<IUser>,
+  ): Promise<IUser | null> {
+    try {
+      return await User.findByIdAndUpdate(userId, updateData, { new: true });
+    } catch (error) {
+      console.error(error);
+      throw new Error("Ошибка при обновлении пользователя");
+    }
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return false;
+      }
+
+      user.isDeleted = true;
+      await user.save();
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Ошибка при удалении пользователя");
+    }
   }
 }

@@ -1,14 +1,15 @@
-import { User } from "../models/user.model";
+import { UserRepository } from "../repositories/userRepository";
 import { IUser } from "../types";
 
 export class UserService {
+  private userRepository: UserRepository;
+
+  constructor() {
+    this.userRepository = new UserRepository();
+  }
+
   async getAllUsers(): Promise<IUser[]> {
-    try {
-      return await User.find({ isDeleted: false });
-    } catch (error) {
-      console.error(error);
-      throw new Error("Ошибка при получении пользователей");
-    }
+    return await this.userRepository.findAll();
   }
 
   async createUser(
@@ -16,57 +17,30 @@ export class UserService {
     email: string,
     password: string,
   ): Promise<IUser> {
-    try {
-      const newUser = new User({
-        name,
-        email,
-        password,
-        age: 0,
-        isVerified: false,
-        isDeleted: false,
-        role: "user",
-      });
+    const userData: IUser = {
+      name,
+      email,
+      password,
+      age: 0,
+      isVerified: false,
+      isDeleted: false,
+      roles: "user",
+    };
 
-      await newUser.save();
-      return newUser;
-    } catch (error) {
-      console.error(error);
-      throw new Error("Ошибка при создании пользователя");
-    }
+    return await this.userRepository.createUser(userData);
   }
 
   async updateUser(
     userId: string,
-    name: string,
-    email: string,
-    password: string,
+    name?: string,
+    email?: string,
+    password?: string,
   ): Promise<IUser | null> {
-    try {
-      return await User.findByIdAndUpdate(
-        userId,
-        { name, email, password, updatedAt: new Date() },
-        { new: true },
-      );
-    } catch (error) {
-      console.error(error);
-      throw new Error("Ошибка при обновлении пользователя");
-    }
+    const updateData: Partial<IUser> = { name, email, password };
+    return await this.userRepository.updateUser(userId, updateData);
   }
 
   async deleteUser(userId: string): Promise<boolean> {
-    try {
-      const user = await User.findById(userId);
-
-      if (!user) {
-        return false;
-      }
-
-      user.isDeleted = true;
-      await user.save();
-      return true;
-    } catch (error) {
-      console.error(error);
-      throw new Error("Ошибка при удалении пользователя");
-    }
+    return await this.userRepository.deleteUser(userId);
   }
 }

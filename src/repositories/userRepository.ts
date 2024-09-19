@@ -2,6 +2,9 @@ import { User } from "../models/user.model";
 import { IUser } from "../types";
 
 export class UserRepository {
+  async findByEmail(email: string): Promise<IUser | null> {
+    return await User.findOne({ email });
+  }
   async findAll(): Promise<IUser[]> {
     try {
       return await User.find({ isDeleted: false });

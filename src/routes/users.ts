@@ -6,6 +6,7 @@ import {
   getUsers,
   updateUser,
 } from "../controllers/usersController";
+import { authMiddleware } from "../middlewares/authMiddleware";
 import {
   validateCreateUser,
   validateUpdateUser,
@@ -13,7 +14,7 @@ import {
 
 const router = Router();
 
-router.get("/", getUsers);
+router.get("/", authMiddleware, getUsers);
 
 router.post("/", validateCreateUser, createUser);
 

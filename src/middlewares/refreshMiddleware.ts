@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
+import { IUser } from "../interfaces/user.interface";
 import { TokenService } from "../services/tokenService";
 
 const tokenService = new TokenService();
@@ -25,6 +26,6 @@ export const refreshMiddleware = async (
     return res.status(401).json({ message: "Рефреш токен не найден" });
   }
 
-  req.user = userData;
+  req.user = userData as IUser;
   next();
 };

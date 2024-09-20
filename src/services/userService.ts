@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 
+import { Role } from "../enums/role.enum";
 import { IUser } from "../interfaces/user.interface";
 import { UserRepository } from "../repositories/userRepository";
 
@@ -31,7 +32,7 @@ export class UserService {
       password: hashedPassword,
       isVerified: false,
       isDeleted: false,
-      roles: "user",
+      role: Role.USER,
     };
 
     return await this.userRepository.createUser(userData);

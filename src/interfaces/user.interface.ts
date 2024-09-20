@@ -1,3 +1,5 @@
+import { Role } from "../enums/role.enum";
+
 export interface IUser {
   _id?: string;
   name: string;
@@ -6,7 +8,7 @@ export interface IUser {
   age: number;
   isVerified: boolean;
   isDeleted: boolean;
-  roles: "user" | "admin";
+  role: Role;
   createdAt?: Date;
   updatedAt?: Date;
 }

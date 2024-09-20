@@ -35,7 +35,7 @@ export class AuthService {
 
     const tokens = tokenService.generateTokens({
       id: user._id,
-      role: user.roles,
+      role: user.role,
     });
     await tokenService.saveToken(user._id, tokens.refreshToken);
 

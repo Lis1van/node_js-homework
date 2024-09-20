@@ -1,5 +1,7 @@
+import { Types } from "mongoose";
+
 export interface IToken {
-  userId: string;
+  userId: Types.ObjectId;
   refreshToken: string;
   createdAt?: Date;
 }

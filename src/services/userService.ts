@@ -1,5 +1,7 @@
+import bcrypt from "bcrypt";
+
+import { IUser } from "../interfaces/user.interface";
 import { UserRepository } from "../repositories/userRepository";
-import { IUser } from "../types";
 
 export class UserService {
   private userRepository: UserRepository;
@@ -21,11 +23,12 @@ export class UserService {
     email: string,
     password: string,
   ): Promise<IUser> {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const userData: IUser = {
       name,
       email,
-      password,
       age: 0,
+      password: hashedPassword,
       isVerified: false,
       isDeleted: false,
       roles: "user",

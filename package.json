@@ -1,29 +1,28 @@
 {
-  "name": "node_js-homework",
+  "name": "march-2024",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "description": "",
+  "main": "src/index.js",
   "scripts": {
     "start:dev": "rimraf dist && tsc-watch --onSuccess \"npm run watch:server\"",
     "watch:server": "nodemon --exec ts-node src/index.ts",
     "start": "node ./dist/index.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "prepare": "husky"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+},
+  "private": true,
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "express-validator": "^7.2.0",
     "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.10.0",
-    "@types/eslint__js": "^8.42.3",
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.5.4",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
@@ -32,12 +31,19 @@
     "eslint-plugin-import": "^2.30.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-simple-import-sort": "^12.1.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.10",
     "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "tsc-watch": "^6.2.0",
-    "typescript": "^5.6.2",
-    "typescript-eslint": "^8.5.0"
+    "tsc-watch": "^6.2.0"
+  },
+  "lint-staged": {
+    "{src,apps,libs,test}/**/*.ts": "eslint --fix",
+    "include": [
+      "src/**/*",
+      ".eslintrc.cjs"
+    ]
   }
 }

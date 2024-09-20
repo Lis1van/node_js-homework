@@ -1,5 +1,5 @@
+import { IUser } from "../interfaces/user.interface";
 import { User } from "../models/user.model";
-import { IUser } from "../types";
 
 export class UserRepository {
   async findByEmail(email: string): Promise<IUser | null> {

@@ -35,8 +35,8 @@ export const login = async (req: Request, res: Response) => {
   }
 
   const isPasswordValid = await passwordService.comparePasswords(
-    user.password,
     password,
+    user.password,
   );
   if (!isPasswordValid) {
     return res.status(401).json({ message: "Неверный логин или пароль" });

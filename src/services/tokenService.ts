@@ -16,10 +16,26 @@ export class TokenService {
     return { accessToken, refreshToken };
   }
 
+  // validateAccessToken(token: string) {
+  //   try {
+  //     return jwt.verify(token, config.JWT_ACCESS_SECRET);
+  //   } catch {
+  //     return null;
+  //   }
+  // }
+  //
+  // validateRefreshToken(token: string) {
+  //   try {
+  //     return jwt.verify(token, config.JWT_REFRESH_SECRET);
+  //   } catch {
+  //     return null;
+  //   }
+  // }
   validateAccessToken(token: string) {
     try {
       return jwt.verify(token, config.JWT_ACCESS_SECRET);
-    } catch {
+    } catch (error) {
+      console.error("Ошибка при валидации access токена:", error);
       return null;
     }
   }
@@ -27,7 +43,8 @@ export class TokenService {
   validateRefreshToken(token: string) {
     try {
       return jwt.verify(token, config.JWT_REFRESH_SECRET);
-    } catch {
+    } catch (error) {
+      console.error("Ошибка при валидации refresh токена:", error);
       return null;
     }
   }

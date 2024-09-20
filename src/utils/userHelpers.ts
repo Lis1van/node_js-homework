@@ -2,7 +2,7 @@ import * as path from "node:path";
 
 import fs from "fs";
 
-import { IUser } from "../types";
+import { IUser } from "../interfaces/user.interface";
 
 const usersFilePath = path.join(process.cwd(), "users.json");
 

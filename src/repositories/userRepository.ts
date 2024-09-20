@@ -3,7 +3,7 @@ import { User } from "../models/user.model";
 
 export class UserRepository {
   async findByEmail(email: string): Promise<IUser | null> {
-    return await User.findOne({ email });
+    return await User.findOne({ email }).select("+password");
   }
   async findAll(): Promise<IUser[]> {
     try {

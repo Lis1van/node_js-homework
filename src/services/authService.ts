@@ -1,35 +1,67 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 
-import { config } from "../config/configs";
-import { UserRepository } from "../repositories/userRepository";
+import { PasswordService } from "./passwordService";
+import { TokenService } from "./tokenService";
+import { UserService } from "./userService";
+
+const userService = new UserService();
+const passwordService = new PasswordService();
+const tokenService = new TokenService();
 
 export class AuthService {
-  private userRepository: UserRepository;
+  async register(name: string, email: string, password: string) {
+    const existingUser = await userService.getUserByEmail(email);
+    if (existingUser) {
+      throw new Error("Пользователь уже существует");
+    }
 
-  constructor() {
-    this.userRepository = new UserRepository();
+    const user = await userService.createUser(name, email, password);
+    return user;
   }
 
-  async login(email: string, password: string): Promise<string | null> {
-    const user = await this.userRepository.findByEmail(email);
-
+  async login(email: string, password: string) {
+    const user = await userService.getUserByEmail(email);
     if (!user) {
-      throw new Error("Пользователь не найден");
+      throw new Error("Неверный логин или пароль");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new Error("Неверный пароль");
-    }
-
-    // Генерируем JWT токен
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      config.JWT_ACCESS_SECRET,
-      { expiresIn: "1h" },
+    const isPasswordValid = await passwordService.comparePasswords(
+      password,
+      user.password,
     );
-    return token;
+    if (!isPasswordValid) {
+      throw new Error("Неверный логин или пароль");
+    }
+
+    const tokens = tokenService.generateTokens({
+      id: user._id,
+      role: user.roles,
+    });
+    await tokenService.saveToken(user._id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+  async refreshTokens(refreshToken: string) {
+    const userData = tokenService.validateRefreshToken(refreshToken);
+    if (!userData || typeof userData === "string") {
+      throw new Error("Неверный рефреш токен");
+    }
+
+    const dbToken = await tokenService.findToken(refreshToken);
+    if (!dbToken) {
+      throw new Error("Рефреш токен не найден");
+    }
+
+    const tokens = tokenService.generateTokens({
+      id: (userData as JwtPayload).id,
+      role: (userData as JwtPayload).role,
+    });
+    await tokenService.saveToken(
+      (userData as JwtPayload).id,
+      tokens.refreshToken,
+    );
+
+    return tokens;
   }
 }

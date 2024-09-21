@@ -35,6 +35,10 @@ export class TokenService {
   }
 
   async saveToken(userId: string, refreshToken: string) {
+    const existingToken = await tokenRepository.findTokenByUserId(userId);
+    if (existingToken) {
+      await tokenRepository.removeToken(existingToken.refreshToken);
+    }
     return await tokenRepository.saveToken(userId, refreshToken);
   }
 

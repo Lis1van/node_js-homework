@@ -20,4 +20,8 @@ export class TokenRepository {
   async findToken(refreshToken: string): Promise<IToken | null> {
     return await Token.findOne({ refreshToken });
   }
+
+  async findTokenByUserId(userId: string): Promise<IToken | null> {
+    return await Token.findOne({ userId });
+  }
 }

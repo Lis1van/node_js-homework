@@ -37,6 +37,7 @@ export class AuthService {
       id: user._id,
       role: user.role,
     });
+
     await tokenService.saveToken(user._id, tokens.refreshToken);
 
     return tokens;
@@ -57,6 +58,7 @@ export class AuthService {
       id: (userData as JwtPayload).id,
       role: (userData as JwtPayload).role,
     });
+
     await tokenService.saveToken(
       (userData as JwtPayload).id,
       tokens.refreshToken,

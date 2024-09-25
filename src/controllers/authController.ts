@@ -37,3 +37,23 @@ export const refreshTokens = async (req: Request, res: Response) => {
     res.status(401).json({ message: error.message });
   }
 };
+
+export const logout = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  try {
+    await authService.logout(refreshToken);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const logoutAll = async (req: Request, res: Response) => {
+  const userId = req.user.id; // Используем ID пользователя из токена
+  try {
+    await authService.logoutAll(userId);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

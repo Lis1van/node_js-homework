@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 
 import { IUser } from "../interfaces/user.interface";
 import { TokenService } from "../services/tokenService";
@@ -22,10 +23,18 @@ export const authMiddleware = (
   }
 
   const userData = tokenService.validateAccessToken(token);
-  if (!userData) {
+  if (
+    typeof userData !== "object" ||
+    !userData ||
+    !(userData as JwtPayload).id
+  ) {
     return res.status(401).json({ message: "Неверный или просроченный токен" });
   }
 
-  req.user = userData as IUser;
+  // Преобразуем id из токена в _id для совместимости с MongoDB
+  req.user = {
+    ...(userData as JwtPayload),
+    _id: (userData as JwtPayload).id,
+  } as IUser;
   next();
 };

@@ -1,5 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 
+import { EmailAction } from "../enums/email.enum";
+import { emailService } from "./emailService";
 import { PasswordService } from "./passwordService";
 import { TokenService } from "./tokenService";
 import { UserService } from "./userService";
@@ -16,6 +18,7 @@ export class AuthService {
     }
 
     const user = await userService.createUser(name, email, password);
+    await emailService.sendMail(email, EmailAction.WELCOME, name);
     return user;
   }
 
@@ -65,5 +68,29 @@ export class AuthService {
     );
 
     return tokens;
+  }
+  async logout(refreshToken: string) {
+    const tokenData = await tokenService.findToken(refreshToken);
+    if (!tokenData) {
+      throw new Error("Токен не найден");
+    }
+
+    const user = await userService.getUserById(tokenData.userId.toString());
+    if (!user) {
+      throw new Error("Пользователь не найден");
+    }
+
+    await tokenService.deleteToken(refreshToken);
+    await emailService.sendMail(user.email, EmailAction.LOGOUT, user.name);
+  }
+
+  async logoutAll(userId: string) {
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new Error("Пользователь не найден");
+    }
+
+    await tokenService.deleteAllTokens(userId);
+    await emailService.sendMail(user.email, EmailAction.LOGOUT_ALL, user.name);
   }
 }

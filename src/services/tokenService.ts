@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { config } from "../config/configs";
 import { TokenRepository } from "../repositories/tokenRepository";
@@ -16,9 +16,9 @@ export class TokenService {
     return { accessToken, refreshToken };
   }
 
-  validateAccessToken(token: string) {
+  validateAccessToken(token: string): JwtPayload | null {
     try {
-      return jwt.verify(token, config.JWT_ACCESS_SECRET);
+      return jwt.verify(token, config.JWT_ACCESS_SECRET) as JwtPayload;
     } catch (error) {
       console.error("Ошибка при валидации access токена:", error);
       return null;
@@ -44,5 +44,13 @@ export class TokenService {
 
   async findToken(refreshToken: string) {
     return await tokenRepository.findToken(refreshToken);
+  }
+
+  async deleteToken(refreshToken: string) {
+    return await tokenRepository.removeToken(refreshToken);
+  }
+
+  async deleteAllTokens(userId: string) {
+    return await tokenRepository.deleteTokensByUserId(userId);
   }
 }

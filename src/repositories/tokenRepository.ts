@@ -17,6 +17,10 @@ export class TokenRepository {
     await Token.deleteOne({ refreshToken });
   }
 
+  async deleteTokensByUserId(userId: string): Promise<void> {
+    await Token.deleteMany({ userId });
+  }
+
   async findToken(refreshToken: string): Promise<IToken | null> {
     return await Token.findOne({ refreshToken });
   }

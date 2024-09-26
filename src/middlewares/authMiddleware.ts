@@ -31,6 +31,7 @@ export const authMiddleware = (
     return res.status(401).json({ message: "Неверный или просроченный токен" });
   }
 
+  console.log("Данные токена:", userData);
   // Преобразуем id из токена в _id для совместимости с MongoDB
   req.user = {
     ...(userData as JwtPayload),

@@ -39,21 +39,21 @@ export const refreshTokens = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
   try {
-    await authService.logout(refreshToken);
-    res.sendStatus(200);
-  } catch (error: any) {
+    // Используем расшифрованный идентификатор пользователя из req.user
+    await authService.logout(req.user!._id as string); // req.user будет содержать объект с _id после мидлвара
+    res.status(200).json({ message: "Вы успешно вышли из системы" });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 export const logoutAll = async (req: Request, res: Response) => {
-  const userId = req.user.id; // Используем ID пользователя из токена
   try {
-    await authService.logoutAll(userId);
-    res.sendStatus(200);
-  } catch (error: any) {
+    // Используем расшифрованный идентификатор пользователя из req.user
+    await authService.logoutAll(req.user!._id as string); // req.user будет содержать объект с _id после мидлвара
+    res.status(200).json({ message: "Вы успешно вышли из системы" });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

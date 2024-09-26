@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { Types } from "mongoose";
 
 import { Role } from "../enums/role.enum";
 import { IUser } from "../interfaces/user.interface";
@@ -17,6 +18,16 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<IUser | null> {
     return await this.userRepository.findByEmail(email);
+  }
+
+  async getUserById(userId: string): Promise<IUser | null> {
+    try {
+      const objectId = new Types.ObjectId(userId); // Преобразуем строковый ID в ObjectId
+      return await this.userRepository.findById(objectId.toString()); // Приводим ObjectId к строке
+    } catch (err) {
+      console.error("Ошибка при поиске пользователя по ID:", err);
+      throw new Error("Некорректный формат идентификатора пользователя");
+    }
   }
 
   async createUser(
@@ -50,9 +61,5 @@ export class UserService {
 
   async deleteUser(userId: string): Promise<boolean> {
     return await this.userRepository.deleteUser(userId);
-  }
-
-  async getUserById(userId: string): Promise<IUser | null> {
-    return await this.userRepository.findById(userId);
   }
 }

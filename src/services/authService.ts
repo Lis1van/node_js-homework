@@ -23,9 +23,9 @@ export class AuthService {
     const user = await userService.createUser(name, email, hashedPassword);
 
     // Генерация токена для верификации email
-    const verificationToken = tokenService.generateEmailVerificationToken(
-      user._id,
-    );
+    const verificationToken = tokenService.generateActionToken({
+      id: user._id,
+    });
 
     // Отправка email с токеном
     await emailService.sendMail(

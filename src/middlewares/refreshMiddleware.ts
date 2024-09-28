@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { IUser } from "../interfaces/user.interface";
-import { TokenService } from "../services/tokenService";
-
-const tokenService = new TokenService();
+import { tokenService } from "../services/tokenService";
 
 export const refreshMiddleware = async (
   req: Request,

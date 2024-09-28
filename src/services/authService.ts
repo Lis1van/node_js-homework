@@ -2,14 +2,11 @@ import { JwtPayload } from "jsonwebtoken";
 
 import { EmailAction } from "../enums/email.enum";
 import { IUser } from "../interfaces/user.interface";
+import { ApiError } from "../utils/apiError";
 import { emailService } from "./emailService";
-import { PasswordService } from "./passwordService";
-import { TokenService } from "./tokenService";
-import { UserService } from "./userService";
-
-const userService = new UserService();
-const passwordService = new PasswordService();
-const tokenService = new TokenService();
+import { passwordService } from "./passwordService";
+import { tokenService } from "./tokenService";
+import { userService } from "./userService";
 
 export class AuthService {
   async register(
@@ -19,11 +16,25 @@ export class AuthService {
   ): Promise<IUser> {
     const existingUser = await userService.getUserByEmail(email);
     if (existingUser) {
-      throw new Error("Пользователь уже существует");
+      throw new ApiError("Пользователь уже существует", 400);
     }
 
-    const user = await userService.createUser(name, email, password);
-    await emailService.sendMail(email, EmailAction.WELCOME, name);
+    const hashedPassword = await passwordService.hashPassword(password);
+    const user = await userService.createUser(name, email, hashedPassword);
+
+    // Генерация токена для верификации email
+    const verificationToken = tokenService.generateEmailVerificationToken(
+      user._id,
+    );
+
+    // Отправка email с токеном
+    await emailService.sendMail(
+      email,
+      EmailAction.WELCOME,
+      name,
+      verificationToken,
+    );
+
     return user;
   }
 
@@ -32,23 +43,24 @@ export class AuthService {
     password: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await userService.getUserByEmail(email);
+    console.log("User found:", user);
     if (!user) {
-      throw new Error("Неверный логин или пароль");
+      throw new ApiError("Неверный логин или пароль", 400);
     }
 
     const isPasswordValid = await passwordService.comparePasswords(
       password,
       user.password,
     );
+    console.log("Is password valid:", isPasswordValid);
     if (!isPasswordValid) {
-      throw new Error("Неверный логин или пароль");
+      throw new ApiError("Неверный логин или пароль", 400);
     }
 
     const tokens = tokenService.generateTokens({
       id: user._id,
       role: user.role,
     });
-
     await tokenService.saveToken(user._id, tokens.refreshToken);
 
     return tokens;
@@ -58,13 +70,14 @@ export class AuthService {
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const userData = tokenService.validateRefreshToken(refreshToken);
+
     if (!userData || typeof userData === "string") {
-      throw new Error("Неверный рефреш токен");
+      throw new ApiError("Неверный рефреш токен", 401);
     }
 
     const dbToken = await tokenService.findToken(refreshToken);
     if (!dbToken) {
-      throw new Error("Рефреш токен не найден");
+      throw new ApiError("Рефреш токен не найден", 404);
     }
 
     const tokens = tokenService.generateTokens({
@@ -81,38 +94,27 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    try {
-      const user = await userService.getUserById(userId);
-      if (!user) {
-        throw new Error("Пользователь не найден");
-      }
-
-      await tokenService.deleteAllTokens(userId);
-
-      await emailService.sendMail(user.email, EmailAction.LOGOUT, user.name);
-    } catch (err) {
-      console.error("Ошибка при выполнении логаута:", err.message);
-      throw err;
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new ApiError("Пользователь не найден", 404);
     }
+
+    await tokenService.deleteAllTokens(userId);
+    await emailService.sendMail(user.email, EmailAction.LOGOUT, user.name, "");
   }
 
   async logoutAll(userId: string): Promise<void> {
-    try {
-      const user = await userService.getUserById(userId);
-      if (!user) {
-        throw new Error("Пользователь не найден");
-      }
-
-      await tokenService.deleteAllTokens(userId);
-
-      await emailService.sendMail(
-        user.email,
-        EmailAction.LOGOUT_ALL,
-        user.name,
-      );
-    } catch (err) {
-      console.error("Ошибка при выполнении логаута:", err.message);
-      throw err;
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new ApiError("Пользователь не найден", 404);
     }
+
+    await tokenService.deleteAllTokens(userId);
+    await emailService.sendMail(
+      user.email,
+      EmailAction.LOGOUT_ALL,
+      user.name,
+      "",
+    );
   }
 }

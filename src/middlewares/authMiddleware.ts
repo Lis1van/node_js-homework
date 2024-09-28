@@ -2,9 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 
 import { IUser } from "../interfaces/user.interface";
-import { TokenService } from "../services/tokenService";
-
-const tokenService = new TokenService();
+import { tokenService } from "../services/tokenService";
 
 export const authMiddleware = (
   req: Request,
@@ -32,7 +30,6 @@ export const authMiddleware = (
   }
 
   console.log("Данные токена:", userData);
-  // Преобразуем id из токена в _id для совместимости с MongoDB
   req.user = {
     ...(userData as JwtPayload),
     _id: (userData as JwtPayload).id,

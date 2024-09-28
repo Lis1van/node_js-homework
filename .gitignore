@@ -11,3 +11,4 @@ node_modules
 /package-lock.json
 /.idea/inspectionProfiles/Project_Default.xml
 /tsconfig.json
+/.idea/aws.xml

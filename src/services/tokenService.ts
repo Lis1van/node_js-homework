@@ -1,57 +1,69 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { config } from "../config/configs";
-import { IToken } from "../interfaces/token.interface";
 import { TokenRepository } from "../repositories/tokenRepository";
 
-const tokenRepository = new TokenRepository();
+class TokenService {
+  private tokenRepository = new TokenRepository();
 
-export class TokenService {
-  generateTokens(payload: any): { accessToken: string; refreshToken: string } {
+  // Метод для генерации access и refresh токенов
+  generateTokens(payload: { id: string; role: string }) {
     const accessToken = jwt.sign(payload, config.JWT_ACCESS_SECRET, {
       expiresIn: "15m",
     });
     const refreshToken = jwt.sign(payload, config.JWT_REFRESH_SECRET, {
       expiresIn: "30d",
     });
+
     return { accessToken, refreshToken };
   }
 
-  validateAccessToken(token: string): JwtPayload | null {
+  // Метод для проверки валидности refresh токена
+  validateRefreshToken(token: string): JwtPayload | string | null {
     try {
-      return jwt.verify(token, config.JWT_ACCESS_SECRET) as JwtPayload;
-    } catch (error) {
-      console.error("Ошибка при валидации access токена:", error);
+      return jwt.verify(token, config.JWT_REFRESH_SECRET);
+    } catch (err) {
+      console.log(err);
       return null;
     }
   }
 
-  validateRefreshToken(token: string): JwtPayload | null {
+  // Новый метод для генерации action токена
+  generateActionToken(payload: { id: string }, expiresIn = "1h"): string {
+    return jwt.sign(payload, config.ACTION_TOKEN_SECRET, { expiresIn });
+  }
+
+  // Новый метод для проверки валидности action токена
+  validateActionToken(token: string): JwtPayload | string | null {
     try {
-      return jwt.verify(token, config.JWT_REFRESH_SECRET) as JwtPayload;
-    } catch (error) {
-      console.error("Ошибка при валидации refresh токена:", error);
+      return jwt.verify(token, config.ACTION_TOKEN_SECRET);
+    } catch (err) {
+      console.log(err);
       return null;
     }
   }
 
-  async saveToken(userId: string, refreshToken: string): Promise<void> {
-    const existingToken = await tokenRepository.findTokenByUserId(userId);
-    if (existingToken) {
-      await tokenRepository.removeToken(existingToken.refreshToken);
+  // Метод для проверки валидности access токена
+  validateAccessToken(token: string): JwtPayload | string | null {
+    try {
+      return jwt.verify(token, config.JWT_ACCESS_SECRET);
+    } catch (err) {
+      console.log(err);
+      return null;
     }
-    await tokenRepository.saveToken(userId, refreshToken);
   }
 
-  async findToken(refreshToken: string): Promise<IToken | null> {
-    return await tokenRepository.findToken(refreshToken);
+  async saveToken(userId: string, refreshToken: string) {
+    return await this.tokenRepository.saveToken(userId, refreshToken);
   }
 
-  async deleteToken(refreshToken: string): Promise<void> {
-    await tokenRepository.removeToken(refreshToken);
+  async deleteAllTokens(userId: string) {
+    return await this.tokenRepository.deleteTokensByUserId(userId);
   }
 
-  async deleteAllTokens(userId: string): Promise<void> {
-    await tokenRepository.deleteTokensByUserId(userId);
+  async findToken(refreshToken: string) {
+    return await this.tokenRepository.findToken(refreshToken);
   }
 }
+
+export const tokenService = new TokenService();

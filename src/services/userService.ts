@@ -22,8 +22,8 @@ export class UserService {
 
   async getUserById(userId: string): Promise<IUser | null> {
     try {
-      const objectId = new Types.ObjectId(userId); // Преобразуем строковый ID в ObjectId
-      return await this.userRepository.findById(objectId.toString()); // Приводим ObjectId к строке
+      const objectId = new Types.ObjectId(userId);
+      return await this.userRepository.findById(objectId.toString());
     } catch (err) {
       console.error("Ошибка при поиске пользователя по ID:", err);
       throw new Error("Некорректный формат идентификатора пользователя");
@@ -51,11 +51,8 @@ export class UserService {
 
   async updateUser(
     userId: string,
-    name?: string,
-    email?: string,
-    password?: string,
+    updateData: Partial<IUser>,
   ): Promise<IUser | null> {
-    const updateData: Partial<IUser> = { name, email, password };
     return await this.userRepository.updateUser(userId, updateData);
   }
 
@@ -73,9 +70,8 @@ export class UserService {
   async updatePassword(userId: string, newPassword: string) {
     const user = await this.getUserById(userId);
     if (user) {
-      const hashedPassword = await bcrypt.hash(newPassword, 10); // Хэшируем новый пароль
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.password = hashedPassword;
-      // Передаем userId и данные для обновления
       await this.userRepository.updateUser(userId, {
         password: hashedPassword,
       });

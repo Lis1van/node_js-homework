@@ -35,8 +35,10 @@ export class TokenService {
     }
   }
 
-  generateActionToken(userId: string, expiresIn: string = "1h"): string {
-    return jwt.sign({ id: userId }, config.JWT_ACCESS_SECRET, { expiresIn });
+  generateActionToken(userId: string, action: string): string {
+    return jwt.sign({ id: userId, action }, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: "1h",
+    });
   }
 
   validateActionToken(token: string): string | null {

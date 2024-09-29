@@ -7,6 +7,7 @@ const tokenSchema = new Schema<IToken>({
   refreshToken: { type: String, required: true },
   actionToken: { type: String },
   createdAt: { type: Date, default: Date.now, expires: "30d" },
+  resetAttempts: { type: Number, default: 0 },
 });
 
 export const Token = model<IToken>("Token", tokenSchema);

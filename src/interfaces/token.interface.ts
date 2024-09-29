@@ -5,4 +5,5 @@ export interface IToken {
   refreshToken: string;
   actionToken?: string;
   createdAt?: Date;
+  resetAttempts: number;
 }

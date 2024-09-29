@@ -1,7 +1,9 @@
+import bcrypt from "bcrypt";
 import { JwtPayload } from "jsonwebtoken";
 
 import { EmailAction } from "../enums/email.enum";
 import { IUser } from "../interfaces/user.interface";
+import { TokenRepository } from "../repositories/tokenRepository";
 import { emailService } from "./emailService";
 import { PasswordService } from "./passwordService";
 import { TokenService } from "./tokenService";
@@ -10,6 +12,7 @@ import { UserService } from "./userService";
 const userService = new UserService();
 const passwordService = new PasswordService();
 const tokenService = new TokenService();
+const tokenRepository = new TokenRepository();
 
 export class AuthService {
   async register(
@@ -81,46 +84,43 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    try {
-      const user = await userService.getUserById(userId);
-      if (!user) {
-        throw new Error("Пользователь не найден");
-      }
-
-      await tokenService.deleteAllTokens(userId);
-
-      await emailService.sendMail(user.email, EmailAction.LOGOUT, user.name);
-    } catch (err) {
-      console.error("Ошибка при выполнении логаута:", err.message);
-      throw err;
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new Error("Пользователь не найден");
     }
+
+    await tokenService.deleteAllTokens(userId);
+    await emailService.sendMail(user.email, EmailAction.LOGOUT, user.name);
   }
 
   async logoutAll(userId: string): Promise<void> {
-    try {
-      const user = await userService.getUserById(userId);
-      if (!user) {
-        throw new Error("Пользователь не найден");
-      }
-
-      await tokenService.deleteAllTokens(userId);
-
-      await emailService.sendMail(
-        user.email,
-        EmailAction.LOGOUT_ALL,
-        user.name,
-      );
-    } catch (err) {
-      console.error("Ошибка при выполнении логаута:", err.message);
-      throw err;
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new Error("Пользователь не найден");
     }
+
+    await tokenService.deleteAllTokens(userId);
+    await emailService.sendMail(user.email, EmailAction.LOGOUT_ALL, user.name);
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string): Promise<void> {
     const user = await userService.getUserByEmail(email);
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
 
-    const token = tokenService.generateActionToken(user._id);
+    // Проверка на количество попыток сброса пароля
+    const resetAttempts = await tokenRepository.getResetAttempts(user._id);
+    if (resetAttempts >= 3) {
+      throw new Error(
+        "Too many password reset attempts. Please try again later.",
+      );
+    }
+
+    const token = tokenService.generateActionToken(user._id, "reset-password");
+    await tokenRepository.saveActionToken(user._id, token);
+    await tokenRepository.incrementResetAttempts(user._id);
+
     await emailService.sendMail(
       user.email,
       EmailAction.FORGOT_PASSWORD,
@@ -129,11 +129,40 @@ export class AuthService {
     );
   }
 
+  async verifyEmail(token: string): Promise<void> {
+    const payload = tokenService.validateActionToken(token);
+    if (!payload) {
+      throw new Error("Invalid token");
+    }
+
+    const user = await userService.getUserById(payload);
+    if (!user) {
+      throw new Error("Invalid token or user not found");
+    }
+
+    await userService.updateUser(user._id.toString(), { isVerified: true }); // Передаем userId и объект с изменениями
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const payload = tokenService.validateActionToken(token);
+    if (!payload) {
+      throw new Error("Invalid token");
+    }
+
+    const user = await userService.getUserById(payload);
+    if (!user) {
+      throw new Error("Invalid token or user not found");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await userService.updatePassword(user._id.toString(), hashedPassword); // Передаем userId и новый хэшированный пароль
+  }
+
   async changePassword(
     userId: string,
     currentPassword: string,
     newPassword: string,
-  ) {
+  ): Promise<void> {
     const user = await userService.getUserById(userId);
     if (!user) throw new Error("User not found");
 
@@ -145,10 +174,5 @@ export class AuthService {
 
     const hashedPassword = await passwordService.hashPassword(newPassword);
     await userService.updatePassword(userId, hashedPassword);
-  }
-
-  async verifyEmail(token: string) {
-    const userId = tokenService.validateActionToken(token);
-    await userService.verifyUser(userId);
   }
 }

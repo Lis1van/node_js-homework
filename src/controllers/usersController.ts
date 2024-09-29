@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 
+import { IUser } from "../interfaces/user.interface";
 import { UserService } from "../services/userService";
 
 const userService = new UserService();
@@ -27,12 +28,13 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const userId: string = req.params.userId;
     const { name, email, password } = req.body;
-    const updatedUser = await userService.updateUser(
-      userId,
-      name,
-      email,
-      password,
-    );
+    const updateData: Partial<IUser> = {
+      ...(name && { name }), // Добавляем поле, если оно существует
+      ...(email && { email }), // Аналогично для email
+      ...(password && { password }), // Аналогично для пароля
+    };
+
+    const updatedUser = await userService.updateUser(userId, updateData);
 
     if (!updatedUser) {
       return res.status(404).send("Пользователь не найден.");

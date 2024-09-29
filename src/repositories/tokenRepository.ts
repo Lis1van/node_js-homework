@@ -44,4 +44,21 @@ export class TokenRepository {
   async removeActionToken(userId: string): Promise<void> {
     await Token.updateOne({ userId }, { $unset: { actionToken: 1 } });
   }
+
+  async getResetAttempts(userId: string): Promise<number> {
+    const token = await Token.findOne({ userId });
+    return token?.resetAttempts || 0;
+  }
+
+  async incrementResetAttempts(userId: string): Promise<void> {
+    await Token.findOneAndUpdate(
+      { userId },
+      { $inc: { resetAttempts: 1 } },
+      { upsert: true },
+    );
+  }
+
+  async resetResetAttempts(userId: string): Promise<void> {
+    await Token.findOneAndUpdate({ userId }, { $set: { resetAttempts: 0 } });
+  }
 }

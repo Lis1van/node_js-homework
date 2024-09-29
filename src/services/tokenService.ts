@@ -35,6 +35,19 @@ export class TokenService {
     }
   }
 
+  generateActionToken(userId: string, expiresIn: string = "1h"): string {
+    return jwt.sign({ id: userId }, config.JWT_ACCESS_SECRET, { expiresIn });
+  }
+
+  validateActionToken(token: string): string | null {
+    try {
+      const payload = jwt.verify(token, config.JWT_ACCESS_SECRET);
+      return (payload as jwt.JwtPayload).id;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async saveToken(userId: string, refreshToken: string): Promise<void> {
     const existingToken = await tokenRepository.findTokenByUserId(userId);
     if (existingToken) {

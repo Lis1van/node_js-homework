@@ -28,4 +28,20 @@ export class TokenRepository {
   async findTokenByUserId(userId: string): Promise<IToken | null> {
     return await Token.findOne({ userId });
   }
+  async saveActionToken(userId: string, actionToken: string): Promise<IToken> {
+    const token = await Token.findOne({ userId });
+    if (token) {
+      token.actionToken = actionToken;
+      return await token.save();
+    }
+    return await Token.create({ userId, actionToken });
+  }
+
+  async findActionToken(token: string): Promise<IToken | null> {
+    return await Token.findOne({ actionToken: token });
+  }
+
+  async removeActionToken(userId: string): Promise<void> {
+    await Token.updateOne({ userId }, { $unset: { actionToken: 1 } });
+  }
 }

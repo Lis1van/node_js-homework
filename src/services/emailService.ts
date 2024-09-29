@@ -49,6 +49,7 @@ class EmailService {
     email: string,
     emailAction: EmailAction,
     name: string,
+    token?: string,
   ): Promise<SMTPTransport.SentMessageInfo> {
     try {
       const { template, subject } = allTemplate[emailAction];
@@ -58,6 +59,7 @@ class EmailService {
         template: template,
         context: {
           name: name,
+          token,
         },
       };
       return await this.transporter.sendMail(mailOptions);

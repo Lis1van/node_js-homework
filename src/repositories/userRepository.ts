@@ -62,4 +62,12 @@ export class UserRepository {
       throw new Error("Ошибка при удалении пользователя");
     }
   }
+
+  async verifyUser(userId: string): Promise<IUser | null> {
+    return await User.findByIdAndUpdate(
+      userId,
+      { isVerified: true },
+      { new: true },
+    );
+  }
 }

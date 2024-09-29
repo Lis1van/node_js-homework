@@ -62,4 +62,23 @@ export class UserService {
   async deleteUser(userId: string): Promise<boolean> {
     return await this.userRepository.deleteUser(userId);
   }
+
+  async verifyUser(userId: string) {
+    const user = await this.getUserById(userId);
+    if (user && !user.isVerified) {
+      await this.userRepository.verifyUser(userId);
+    }
+  }
+
+  async updatePassword(userId: string, newPassword: string) {
+    const user = await this.getUserById(userId);
+    if (user) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10); // Хэшируем новый пароль
+      user.password = hashedPassword;
+      // Передаем userId и данные для обновления
+      await this.userRepository.updateUser(userId, {
+        password: hashedPassword,
+      });
+    }
+  }
 }

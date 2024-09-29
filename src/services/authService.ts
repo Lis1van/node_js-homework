@@ -115,4 +115,40 @@ export class AuthService {
       throw err;
     }
   }
+
+  async forgotPassword(email: string) {
+    const user = await userService.getUserByEmail(email);
+    if (!user) throw new Error("User not found");
+
+    const token = tokenService.generateActionToken(user._id);
+    await emailService.sendMail(
+      user.email,
+      EmailAction.FORGOT_PASSWORD,
+      user.name,
+      token,
+    );
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await userService.getUserById(userId);
+    if (!user) throw new Error("User not found");
+
+    const isMatch = await passwordService.comparePasswords(
+      currentPassword,
+      user.password,
+    );
+    if (!isMatch) throw new Error("Current password is incorrect");
+
+    const hashedPassword = await passwordService.hashPassword(newPassword);
+    await userService.updatePassword(userId, hashedPassword);
+  }
+
+  async verifyEmail(token: string) {
+    const userId = tokenService.validateActionToken(token);
+    await userService.verifyUser(userId);
+  }
 }
